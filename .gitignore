@@ -1,0 +1,12 @@
+__pycache__/
+.DS_Store
+.vscode/
+
+# 忽略大型数据和模型文件 (>100MB)
+*.mp4
+*.avi
+*.pt
+*.engine
+*.onnx
+dataset/images/
+dataset/labels/
