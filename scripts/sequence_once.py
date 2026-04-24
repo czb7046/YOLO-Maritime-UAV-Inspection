@@ -8,7 +8,7 @@ import os
 # ==========================================
 # 1. 配置参数
 # ==========================================
-EXCEL_CACHE_PATH = 'predictions_cache.xlsx'  
+EXCEL_CACHE_PATH = 'sequence_once_predictions_cache.xlsx'  
 LOG_DIR = 'flight_logs'            
 os.makedirs(LOG_DIR, exist_ok=True)
 
