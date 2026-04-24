@@ -21,7 +21,7 @@ Official repository for the paper: **"Guided Search and Edge YOLO Benchmarking f
 UAV-Maritime-Inspection/
 │
 ├── dataset/                  
-│   └── README.md             # Contains links and instructions for the dataset
+│   └── dataset_link.md             # Contains links and instructions for the dataset
 │
 ├── videos/                   
 │   ├── video_4_fps_power.mp4 # Pre-loaded video for strict GPU load testing

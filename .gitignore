@@ -3,7 +3,7 @@ __pycache__/
 .vscode/
 
 # 忽略大型数据和模型文件 (>100MB)
-*.mp4
+# *.mp4
 *.avi
 *.pt
 *.engine
