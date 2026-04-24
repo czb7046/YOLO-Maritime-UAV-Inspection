@@ -28,11 +28,12 @@ UAV-Maritime-Inspection/
 │   └── video_4_sequence_eval.mp4 # High-fidelity 3D circumnavigation for GSS evaluation
 │
 ├── scripts/                  
-│   ├── train_custom.sh       # Bash script for training and TensorRT export (w/o fliplr)
-│   ├── auto_benchmark.py     # Automated 60s thermal equilibrium & power test script
-│   ├── verify_wns.py         # Script to calculate WNS rankings and normalization
-│   ├── sequence_once.py      # Core logic for single Monte Carlo trial trajectory
-│   └── sequence_simulation.py# Execution script for massive Monte Carlo runs
+│   ├── train_custom.sh                     # Bash script for training and TensorRT export (w/o fliplr)
+│   ├── auto_benchmark.py                   # Automated 60s thermal equilibrium & power test script
+│   ├── verify_wns.py                       # Script to calculate WNS rankings and normalization
+│   ├── sequence_once.py                    # Core logic for single Monte Carlo trial trajectory
+│   ├── sequence_simulation.py              # Execution script for massive Monte Carlo runs
+│   └── sequence_once_predictions_cache.xlsx# The input file of sequence_once.py
 │
 ├── logs/                     
 │   ├── tegrastats_logs/      # Raw VDD_IN power consumption logs
