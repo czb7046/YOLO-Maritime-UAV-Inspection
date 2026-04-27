@@ -8,7 +8,7 @@ import os
 # ==========================================
 # 1. 配置参数
 # ==========================================
-EXCEL_CACHE_PATH = 'sequence_once_predictions_cache.xlsx'  
+EXCEL_CACHE_PATH = 'predictions_cache.xlsx'  
 LOG_DIR = 'flight_logs'            
 os.makedirs(LOG_DIR, exist_ok=True)
 
@@ -28,7 +28,8 @@ class UAVFinalEvaluator:
         self.raw_preds = []         # YOLO 原始预测
         self.true_labels = []       # 你手工修正的真值
         self.total_frames = 0
-        self.target_zone = set()    # 真正的 Stern 区域
+        self.target_zone = set()          # 预测的 Stern 区域
+        self.target_zone_ideal = set()    # 真正的 Stern 区域
 
     def load_data(self):
         print(f"[*] 加载数据 {EXCEL_CACHE_PATH} ...")
@@ -53,8 +54,9 @@ class UAVFinalEvaluator:
         self.true_labels = corrected
         self.total_frames = len(self.raw_preds)
         
-        # 目标区域必须是物理上真实的 Stern
-        self.target_zone = {i for i, p in enumerate(self.true_labels) if p == 0}
+        # ideal_gss目标区域必须是物理上真实的 Stern
+        self.target_zone = {i for i, p in enumerate(self.raw_preds) if p == 0}
+        self.target_zone_ideal = {i for i, p in enumerate(self.true_labels) if p == 0}
         print(f"[*] 数据加载完毕。总帧数: {self.total_frames}, 物理目标(Stern)区间大小: {len(self.target_zone)}帧")
 
     def _get_direction(self, perception_class):
@@ -70,45 +72,6 @@ class UAVFinalEvaluator:
             if perception_class == 1: return random.choice([-1, 1])
         return 0
 
-    # def simulate_bss(self, start_frame):
-    #     """1. BSS 盲搜：开局随机猜方向，一路走到黑"""
-    #     current = start_frame
-    #     direction = random.choice([-1, 1]) 
-    #     steps = 0
-    #     while current not in self.target_zone and steps < MAX_STEPS:
-    #         current = (current + direction) % self.total_frames 
-    #         steps += 1
-    #     return steps
-
-    # def simulate_initial_gss(self, start_frame):
-    #     """2. Initial-GSS (你的策略)：只在起点用 YOLO 预测方向，然后一路走到黑"""
-    #     current = start_frame
-    #     # 使用原始 YOLO 预测来决定初始方向
-    #     initial_perception = self.raw_preds[current]
-    #     direction = self._get_direction(initial_perception)
-        
-    #     # 如果起点刚好没认出来，随机猜一个
-    #     if direction == 0: direction = random.choice([-1, 1]) 
-            
-    #     steps = 0
-    #     while current not in self.target_zone and steps < MAX_STEPS:
-    #         current = (current + direction) % self.total_frames
-    #         steps += 1
-    #     return steps
-
-    # def simulate_ideal_gss(self, start_frame):
-    #     """3. Ideal-GSS (理论上限)：在起点用完美的 真值 预测方向，然后走到黑"""
-    #     current = start_frame
-    #     # 使用你手工修正的完美标签决定方向
-    #     true_perception = self.true_labels[current]
-    #     direction = self._get_direction(true_perception)
-    #     if direction == 0: direction = random.choice([-1, 1]) 
-            
-    #     steps = 0
-    #     while current not in self.target_zone and steps < MAX_STEPS:
-    #         current = (current + direction) % self.total_frames
-    #         steps += 1
-    #     return steps
     def simulate_bss(self, start_frame):
         current = start_frame
         direction = random.choice([-1, 1]) 
@@ -139,7 +102,7 @@ class UAVFinalEvaluator:
         if direction == 0: direction = random.choice([-1, 1]) 
             
         steps = 0
-        while current not in self.target_zone and steps < MAX_STEPS:
+        while current not in self.target_zone_ideal and steps < MAX_STEPS:
             current = (current + direction) % self.total_frames
             steps += 1
         return steps, current  # <--- 修改点
@@ -171,23 +134,7 @@ class UAVFinalEvaluator:
             df_log.to_csv(f"{LOG_DIR}/oscillation_trial_{trial_id}_start_{start_frame}.csv", index=False)
             
         return steps
-    # 在 sequence_eval.py 的 UAVFinalEvaluator 类中修改或添加这个方法：
-    # def run_simulation(self, trials=10000):
-    #     """只跑仿真并返回纯数据，不画图"""
-    #     res_bss, res_initial_gss, res_ideal_gss = [], [], []
-        
-    #     for _ in range(trials):
-    #         # 随机选取一个非目标区域的起点
-    #         start = random.randint(0, self.total_frames - 1)
-    #         while start in self.target_zone:
-    #             start = random.randint(0, self.total_frames - 1)
-                
-    #         res_bss.append(self.simulate_bss(start))
-    #         res_initial_gss.append(self.simulate_initial_gss(start))
-    #         res_ideal_gss.append(self.simulate_ideal_gss(start))
-            
-    #     return res_bss, res_initial_gss, res_ideal_gss
-    # 请在 UAVFinalEvaluator 类中替换这个方法
+
     def run_simulation(self, trials=10000):
         """只跑仿真并返回详细数据，用于宏观统计和日志记录"""
         
@@ -240,10 +187,7 @@ class UAVFinalEvaluator:
     def plot_results(self, bss, initial_gss, ideal_gss):
         plt.figure(figsize=(10, 6))
         
-        # 只取没有死循环的数据绘图
-        # bss_clean = [x for x in bss if x < MAX_STEPS]
-        # ini_clean = [x for x in initial_gss if x < MAX_STEPS]
-        # ideal_clean = [x for x in ideal_gss if x < MAX_STEPS]
+        # 取数据绘图
         bss_clean = [x for x in bss]
         ini_clean = [x for x in initial_gss]
         ideal_clean = [x for x in ideal_gss]
@@ -272,7 +216,7 @@ class UAVFinalEvaluator:
             r'$\mu_{Ideal-GSS}=%.1f$ (Gain: %.1f%%)' % (ideal_mean, gain_ideal)))
             
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-        plt.gca().text(0.05, 0.95, textstr, transform=plt.gca().transAxes, fontsize=11,
+        plt.gca().text(0.95, 0.95, textstr, transform=plt.gca().transAxes, fontsize=11,
                 verticalalignment='top', bbox=props)
                 
         plt.savefig('final_strategy_evaluation.png', dpi=300, bbox_inches='tight')
