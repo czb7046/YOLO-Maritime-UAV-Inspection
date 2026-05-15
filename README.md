@@ -91,10 +91,10 @@ python scripts/sequence_simulation.py
 ## 📜 Citation
 If you find this repository, dataset, or the architectural insights useful for your research, please consider citing our paper:
 ```bibtex
-@article{cao2024guided,
+@article{cao2026guided,
   title={Guided Search and Edge YOLO Benchmarking for UAV-Based Maritime Vessel Inspection: A Perception-Driven Navigation Strategy},
   author={Cao, Zhi-Bo},
   journal={Ocean Engineering},
-  year={2024},
+  year={2026},
   note={Under Review}
 }
